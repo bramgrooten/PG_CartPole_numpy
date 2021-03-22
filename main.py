@@ -12,7 +12,7 @@ class PGCartPoleAgent:
         self.model = self.create_model()
         self.env = gym.make('CartPole-v0')
         obs = self.env.reset()
-        self.batch_size = 50
+        self.batch_size = 30
         self.learning_rate = 1e-3
         self.gamma = 0.99
         self.current_epoch = 0
@@ -73,7 +73,6 @@ class PGCartPoleAgent:
 
     def train_one_epoch(self):
         running_reward = 0
-        running_mean = 0
         memory = list()
         # update buffers that add up gradients over a batch and rmsprop memory
         gradient_buffer = {k: np.zeros_like(v, dtype=np.float) for k, v in self.model.items()}
@@ -81,8 +80,6 @@ class PGCartPoleAgent:
         for episode in range(self.batch_size):
             score, transitions = self.run_one_episode()
             memory += transitions
-            running_mean = running_mean * 0.99 + score * 0.01
-            print(f"Episode {episode:6d}, score: {score: 4.0f}, running mean: {running_mean: 6.2f}")
 
             # Convert memory to a stack
             observations, hiddens, probabilities, rewards = np.array(list(zip(*memory)), dtype=np.object)
@@ -120,6 +117,7 @@ class PGCartPoleAgent:
 
     def evaluate(self, nr_games=100):
         """ Evaluate the model results.  """
+        print("\nEvaluating now...")
         collected_scores = []
         for episode in range(1, nr_games + 1):
             score, _ = self.run_one_episode()
